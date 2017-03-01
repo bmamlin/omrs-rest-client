@@ -1,0 +1,17 @@
+# URL of OpenMRS instance (must be running REST web services module)
+base_url: https://demo.openmrs.org/openmrs
+
+# Default credentials for API calls
+user: admin
+pw: Admin123
+
+# This is the default "OpenMRS ID" identifier type's UUID. For lack of a REST API to generate
+# an identifier, you must run the idgen module and specify the UUID of the identifier type you 
+# want to use when creating patient's here. If you want the UUID of another identifier type,
+# you can list available identifier types and their UUID using the command:
+# omrs.py identifiertypes
+identifier_type_uuid: 05a29f94-c0ed-11e2-94be-8c13b969e334
+
+# This is the default location to be used for identifiers. You can get a list of locations
+# and their UUID with the command: omrs.py locations
+location_uuid: 8d6c993e-c2cc-11de-8d13-0010c6dffd0f
