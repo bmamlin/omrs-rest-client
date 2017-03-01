@@ -34,6 +34,10 @@ Docker:
 
 * Create an observation for patient 123-0 for Weight (kg) = 70 on 1 March, 2017 at 23:11
 
+`./omrs.py obs -p 123-0 -c 1284AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA -vc 142412AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA`
+
+* Create an observation for patient 123-0 for PROBLEM LIST = Diarrhea _(note that `-vc` is used to indicate a "value coded" for an observation answered with a coded concept)_
+
 `./omrs.py died -p 123-0 -d 2017-03-01`
 
 * Mark patient 123-0 as having died on 1 March, 2017
