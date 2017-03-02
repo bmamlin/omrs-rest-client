@@ -34,9 +34,9 @@ Docker:
 
 * Create an observation for patient 123-0 for Weight (kg) = 70 on 1 March, 2017 at 23:11
 
-`./omrs.py obs -p 123-0 -c 1284AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA -vc 142412AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA`
+`./omrs.py obs -p 123-0 -c 1284AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA -vc 142412AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA` -dt t-3w
 
-* Create an observation for patient 123-0 for PROBLEM LIST = Diarrhea _(note that `-vc` is used to indicate a "value coded" for an observation answered with a coded concept)_
+* Create an observation for patient 123-0 of PROBLEM LIST = Diarrhea with timestamp of 3 weeks ago _(note that `-vc` is used to indicate a "value coded" for an observation answered with a coded concept)_
 
 `./omrs.py died -p 123-0 -d 2017-03-01`
 
@@ -49,6 +49,12 @@ Docker:
 `./omrs.py locations`
 
 * List know locations and their UUID
+
+> Dates can be in the format 'YYYY-MM-DD' or given as a relative dates:
+> * "t" for today
+> * "t-3d" for 3 days ago
+> * "t-7w" for 7 weeks ago
+> * "t-2m" for 2 months ago
 
 ## Options
 

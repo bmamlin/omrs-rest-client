@@ -13,9 +13,12 @@ import yaml
 import requests
 import json
 from datetime import datetime
-import dateutil.parser
+import dateutil
+from dateutil import relativedelta
 import sys
 import re
+
+VERSION = '1.1'
 
 #=========================================================================
 # Default configuration
@@ -31,7 +34,7 @@ DEFAULT_CONCEPT_SOURCE = 'CIEL'
 # Command line parsing
 #=========================================================================
 
-parser = argparse.ArgumentParser(description='OpenMRS REST API Client',
+parser = argparse.ArgumentParser(description='OpenMRS REST API Client v%s' % VERSION,
 	formatter_class=argparse.RawTextHelpFormatter)
 subparsers = parser.add_subparsers()
 
@@ -45,6 +48,7 @@ parser.add_argument('--user', '-u', metavar='USERNAME', default=DEFAULT_USER,
 parser.add_argument('--pw', '-p', metavar='PASSWORD', default=DEFAULT_PASSWORD,
 	help='Password for authentication to API')
 parser.add_argument('--quiet', '-q', action='store_true')
+parser.add_argument('--version', '-v', action='store_true')
 
 parser_find = subparsers.add_parser('find', description='Find uuids for patient or concepts')
 parser_find_group = parser_find.add_mutually_exclusive_group(required=True)
@@ -74,7 +78,7 @@ parser_obs.add_argument('--code', '-c', required=True,
 parser_obs.add_argument('--source', '-s',
 	help='(optional) Concept source (default:%s)' % DEFAULT_CONCEPT_SOURCE)
 parser_obs.add_argument('--obsDatetime', '-dt',
-	help='(optional) obsDatetime (use format YYYY-MM-DD[ HH:MM])')
+	help='(optional) obsDatetime (use format YYYY-MM-DD[ HH:MM] or T-3D)')
 parser_value_group = parser_obs.add_mutually_exclusive_group(required=True)
 parser_value_group.add_argument('--value', '-v',
 	help='Value of observation (concept code for coded value)')
@@ -87,7 +91,7 @@ parser_died = subparsers.add_parser('died',
 parser_died.add_argument('--patient', '-p', required=True,
 	help='Patient who died (identifier or UUID)')
 parser_died.add_argument('--deathDate', '-d',
-	help='Date of patient\'s death (default is today)')
+	help='Date of patient\'s death (use format YYYY-MM-DD or T-3W, default is today)')
 parser_died.add_argument('--causeOfDeath', '-c',
 	help='Cause of death (uuid or concept code)')
 parser_died.set_defaults(func='died')
@@ -104,6 +108,10 @@ parser_help = subparsers.add_parser('help',
 parser_help.set_defaults(func='help')
 
 args = parser.parse_args()
+
+if args.version:
+	print(VERSION)
+	sys.exit(0)
 
 config = yaml.safe_load(open('omrs.yml'))
 base_url = config['base_url']
@@ -167,6 +175,33 @@ def list_results(arr):
 	for elem in arr:
 		i += 1
 		print('%i: %s (%s)' % (i, elem['display'], elem['uuid']))
+
+relativeDateRe = re.compile(r'^t(oday)?(\-(\d+)([dwmy]))?$', re.I)
+
+def parse_date(s):
+	'''Convert date±time string to standard format. Supports T, T-1D, T-3W, T-6M.'''
+	d = None
+	m = relativeDateRe.match(s)
+	if m:
+		d = datetime.now()
+		if m.group(2):
+			n = int(m.group(3))
+			unit = m.group(4).lower()
+			if unit == 'd':
+				d -= relativedelta.relativedelta(days=n)
+			elif unit == 'w':
+				d -= relativedelta.relativedelta(weeks=n)
+			elif unit == 'm':
+				d -= relativedelta.relativedelta(months=n)
+			elif unit == 'y':
+				d -= relativedelta.relativedelta(years=n)
+	else:
+		try:
+			d = dateutil.parser.parse(deathDate)
+		except:
+			print('Invalid date: %s' % s)
+			sys.exit(1)
+	return d.strftime('%Y-%m-%d')
 
 #=========================================================================
 # OpenMRS REST calls
@@ -245,11 +280,7 @@ def get_concept_uuid(code, source=DEFAULT_CONCEPT_SOURCE):
 
 def create_obs(patient, concept, value, valueSource=None, obsDatetime=None):
 	url = '%s/obs' % (api)
-	if obsDatetime is None:
-		obsDatetime = datetime.now()
-	else:
-		obsDatetime = dateutil.parser.parse(obsDatetime)
-	obsDatetime = obsDatetime.strftime('%Y-%m-%dT%H:%M:%S')
+	if obsDatetime is None: obsDatetime = parse_date('today')
 	if valueSource:
 		value = '%s:%s' % (valueSource, value)
 	data = {
@@ -263,11 +294,7 @@ def create_obs(patient, concept, value, valueSource=None, obsDatetime=None):
 
 def person_died(person, causeOfDeath=DEFAULT_CAUSE_OF_DEATH, deathDate=None):
 	url = '%s/person/%s' % (api, person)
-	if deathDate is None:
-		deathDate = datetime.now()
-	else:
-		deathDate = dateutil.parser.parse(deathDate)
-	deathDate = deathDate.strftime('%Y-%m-%d')
+	if deathDate is None: deathDate = parse_date('today')
 	data = {
 		'dead': True,
 		'deathDate': deathDate,
@@ -284,7 +311,9 @@ def person_died(person, causeOfDeath=DEFAULT_CAUSE_OF_DEATH, deathDate=None):
 
 def main():
 	silence = args.quiet or False
-	if args.func == 'find':
+	if not hasattr(args, 'func') or args.func == 'help':
+		parser.print_help()
+	elif args.func == 'find':
 		if args.patient:
 			print(get_patient_uuid(args.patient))
 		elif args.concept:
@@ -307,7 +336,7 @@ def main():
 		# TODO: support coded answers including valueSource
 		# TODO: birthdate for patient
 		if args.obsDatetime:
-			options['obsDatetime'] = args.obsDatetime	
+			options['obsDatetime'] = parse_date(args.obsDatetime)	
 		if args.valueCoded:
 			source, code = parse_source_and_code(args.valueCoded)
 			options['valueSource'] = source
@@ -319,12 +348,10 @@ def main():
 	elif args.func == 'died':
 		options = dict(person=get_patient_uuid(args.patient))
 		if args.deathDate:
-			options['deathDate'] = args.deathDate
+			options['deathDate'] = parse_date(args.deathDate)
 		if args.causeOfDeath:
 			options['causeOfDeath'] = get_concept_uuid(args.causeOfDeath)
 		person_died(**options)
-	elif args.func == 'help':
-		parser.print_help()
 	else:
 		print('Unrecognized command')
 		system.exit(1)
