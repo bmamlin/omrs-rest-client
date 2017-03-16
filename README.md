@@ -6,9 +6,13 @@ REST API.
 
 ## Setup
 
-You must have a few python libraries installed to run this script
+### Running natively
+
+To run [`omrs.py`](omrs.py) natively, ou must have a few python libraries installed:
 
 `pip install requests pyyaml python-dateutil`
+
+### Run using Docker
 
 Alternatively, if you have [Docker](https://www.docker.com/) installed (why wouldn't 
 you?), then you don't need to install or configure python and can run the script using
