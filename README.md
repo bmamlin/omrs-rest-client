@@ -64,7 +64,8 @@ Docker:
 
 The following options may be optionally specified on the command line.
 
-* **--config**: location of configuration file (default is `omrs.yml`)
-* **--api**: URL of OpenMRS instance running REST web services module (defaults to demo)
-* **--user** and **--pw**: credentials to use for REST API calls (default to demo admin)
-* **--quiet**: suppresses some output
+* **--config** (or -c): location of configuration file (default is `omrs.yml`)
+* **--base_url** (or -b): URL of OpenMRS instance running REST web services module without ending slash (e.g., `https://demo.openmrs.org/openmrs`)
+* **--user** and **--pw** (or -u and -p): credentials to use for REST API calls (default to demo admin)
+* **--quiet** (or -q): suppresses some output
+* **--version** (or -v): display script version
