@@ -40,8 +40,7 @@ subparsers = parser.add_subparsers()
 
 parser.add_argument('--config', '-c', metavar='PATH', default=DEFAULT_CONFIG_FILE,
 	help='Path to configuration file')
-parser.add_argument('--api', '-a', metavar='URL',
-	default='https://demo.openmrs.org/openmrs/ws/rest/v1',
+parser.add_argument('--base_url', '-b', metavar='URL',
 	help='URL of OpenMRS API up through version number without ending slash')
 parser.add_argument('--user', '-u', metavar='USERNAME', default=DEFAULT_USER,
 	help='Username for authentication to API')
@@ -113,8 +112,11 @@ if args.version:
 	print(VERSION)
 	sys.exit(0)
 
-config = yaml.safe_load(open('omrs.yml'))
-base_url = config['base_url']
+config = yaml.safe_load(open(args.config))
+if args.base_url:
+	base_url = args.base_url
+else:
+	base_url = config['base_url']
 api = '%s/ws/rest/v1' % base_url
 user = config['user']
 pw = config['pw']
