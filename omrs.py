@@ -181,7 +181,7 @@ def list_results(arr):
 relativeDateRe = re.compile(r'^t(oday)?(\-(\d+)([dwmy]))?$', re.I)
 
 def parse_date(s):
-	'''Convert date±time string to standard format. Supports T, T-1D, T-3W, T-6M.'''
+	'''Convert date/time string to standard format. Supports T, T-1D, T-3W, T-6M.'''
 	d = None
 	m = relativeDateRe.match(s)
 	if m:
