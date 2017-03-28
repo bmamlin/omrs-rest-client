@@ -1,4 +1,4 @@
-#/usr/bin/env python
+#!/usr/bin/env python
 
 """omrs.py: Simple REST client for testing OpenMRS API"""
 
