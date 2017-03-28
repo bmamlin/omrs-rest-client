@@ -18,7 +18,7 @@ from dateutil import relativedelta
 import sys
 import re
 
-VERSION = '1.1'
+VERSION = '1.1.1'
 
 #=========================================================================
 # Default configuration
